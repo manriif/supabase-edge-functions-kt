@@ -5,6 +5,7 @@ supabase-functions = "0.0.1"
 jvm-target = "1.8"
 
 detekt = "1.23.6"
+dokka = "1.9.20"
 gradle-idea-ext = "1.1.8"
 kotlin = "2.0.0"
 kotlinpoet = "1.17.0"
@@ -14,11 +15,11 @@ sourcemap = "2.0.0"
 
 [plugins]
 
-conventions-publishing = { id = "conventions-publishing", version.ref = "supabase-functions" }
 conventions-common = { id = "conventions-common", version.ref = "supabase-functions" }
 conventions-kmp = { id = "conventions-kmp", version.ref = "supabase-functions" }
 
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
+dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlinx-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 
@@ -26,8 +27,8 @@ kotlinx-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", vers
 
 atlassian-sourcemap = { module = "com.atlassian.sourcemap:sourcemap", version.ref = "sourcemap" }
 detekt-gradle-plugin = { module = "io.gitlab.arturbosch.detekt:detekt-gradle-plugin", version.ref = "detekt" }
+dokka-gradle-plugin = { module = "org.jetbrains.dokka:dokka-gradle-plugin", version.ref = "dokka" }
 gradle-idea-ext = { module = "gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext", version.ref = "gradle-idea-ext" }
 kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
-kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
 squareup-kotlinpoet = { module = "com.squareup:kotlinpoet", version.ref = "kotlinpoet" }

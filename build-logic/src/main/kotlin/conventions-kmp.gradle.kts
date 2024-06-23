@@ -3,6 +3,8 @@ plugins {
     org.jetbrains.kotlin.multiplatform
 }
 
+description = property("module.description").toString()
+
 kotlin {
     applyDefaultHierarchyTemplate()
 

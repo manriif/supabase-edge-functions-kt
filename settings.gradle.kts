@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright 2024 Maanrifa Bacar Ali.
  * Use of this source code is governed by the MIT license.
  */
@@ -27,5 +27,5 @@ fun includePlugin(name: String) = includeNamed(":plugins:plugin-$name", name)
 fun includeModule(name: String) = includeNamed(":modules:module-$name", name)
 
 includePlugin("gradle")
-includeModule("deno-binding")
+includeModule("deno-bindings")
 includeModule("fetch-json")

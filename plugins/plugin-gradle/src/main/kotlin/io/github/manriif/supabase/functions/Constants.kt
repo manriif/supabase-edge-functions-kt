@@ -4,8 +4,7 @@ internal const val SUPABASE_FUNCTION_PLUGIN_NAME = "supabase-function"
 internal const val SUPABASE_FUNCTION_TASK_GROUP = "supabase function"
 internal const val SUPABASE_FUNCTION_OUTPUT_DIR = "supabaseFunction"
 
-internal const val COROUTINES_VERSION = "1.8.1"
-internal const val COROUTINES_VERSION_GRADLE_PROPERTY = "coroutines.version"
+internal const val COROUTINES_VERSION_GRADLE_PROPERTY = "supabase.functions.coroutines.version"
 
 internal const val DENO_KOTLIN_BRIDGE_FUNCTION_NAME = "denoKotlinBridge"
 internal const val KOTLIN_MAIN_FUNCTION_NAME = "serve"

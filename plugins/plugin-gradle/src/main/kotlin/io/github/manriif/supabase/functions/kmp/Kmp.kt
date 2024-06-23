@@ -1,10 +1,11 @@
 package io.github.manriif.supabase.functions.kmp
 
-import io.github.manriif.supabase.functions.COROUTINES_VERSION
 import io.github.manriif.supabase.functions.COROUTINES_VERSION_GRADLE_PROPERTY
 import io.github.manriif.supabase.functions.SUPABASE_FUNCTION_PLUGIN_NAME
 import io.github.manriif.supabase.functions.task.TASK_GENERATE_BRIDGE
+import org.gradle.accessors.dm.LibrariesForLibs
 import org.gradle.api.Project
+import org.gradle.kotlin.dsl.the
 import org.gradle.kotlin.dsl.withType
 import org.jetbrains.kotlin.gradle.dsl.JsModuleKind
 import org.jetbrains.kotlin.gradle.dsl.JsSourceMapEmbedMode
@@ -21,7 +22,7 @@ internal fun Project.setupKotlinMultiplatform(kmpExtension: KotlinMultiplatformE
 
     kmpExtension.sourceSets.named { it == "jsMain" }.configureEach {
         val coroutinesVersion = findProperty(COROUTINES_VERSION_GRADLE_PROPERTY)?.toString()
-            ?: COROUTINES_VERSION
+            ?: the<LibrariesForLibs>().versions.kotlinx.coroutines.get()
 
         dependencies {
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${coroutinesVersion}")
