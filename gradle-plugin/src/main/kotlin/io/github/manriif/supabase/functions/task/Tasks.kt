@@ -11,10 +11,10 @@ import io.github.manriif.supabase.functions.kmp.jsOutputName
 import io.github.manriif.supabase.functions.serve.stacktrace.StackTraceSourceMapStrategy
 import io.github.manriif.supabase.functions.util.orNone
 import org.gradle.api.Project
-import org.gradle.api.file.Directory
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.kotlin.dsl.extra
+import org.gradle.kotlin.dsl.named
 import org.gradle.kotlin.dsl.register
 import org.gradle.kotlin.dsl.support.uppercaseFirstChar
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
@@ -40,8 +40,11 @@ internal fun Project.configurePluginTasks(
     extension: SupabaseFunctionExtension,
     kmpExtension: KotlinMultiplatformExtension
 ) {
+    rootProject.registerAggregateImportMapTask(extension)
+
     val jsDependenciesProvider = jsDependencies()
 
+    registerGenerateImportMapTask(extension, jsDependenciesProvider)
     registerGenerateBridgeTask(extension, kmpExtension)
     registerCopyJsTask(extension, jsDependenciesProvider)
     registerCopyKotlinTask(extension, "development")
@@ -50,13 +53,41 @@ internal fun Project.configurePluginTasks(
     registerDeployTask(extension)
     registerUpdateGitignoreTask(extension)
 
-    val importMapsDir = rootProject.layout.buildDirectory.dir(
-        "${SUPABASE_FUNCTION_OUTPUT_DIR}/importMaps"
-    )
-
-    registerAggregateImportMapTask(extension, importMapsDir)
-    registerGenerateImportMapTask(extension, jsDependenciesProvider, importMapsDir)
 }
+
+/**
+ * Creates the task responsible for merging imports maps. The project [this] must be the root one.
+ * This is achieved this way in order to prevent the user from applying the plugin in the
+ * root build.gradle.
+ */
+private fun Project.registerAggregateImportMapTask(extension: SupabaseFunctionExtension) {
+    if (extra.has(TASK_AGGREGATE_IMPORT_MAP) && extra.get(TASK_AGGREGATE_IMPORT_MAP) == true) {
+        return
+    }
+
+    val taskProvider = tasks.register<SupabaseFunctionAggregateImportMapTask>(
+        name = TASK_AGGREGATE_IMPORT_MAP
+    ) {
+        group = SUPABASE_FUNCTION_TASK_GROUP
+        description = "Aggregate functions import maps."
+
+        importMapsDir.convention(layout.buildDirectory.dir("${SUPABASE_FUNCTION_OUTPUT_DIR}/importMaps"))
+        supabaseDir.convention(extension.supabaseDir)
+    }
+
+    tasks.named("prepareKotlinBuildScriptModel") {
+        dependsOn(taskProvider)
+    }
+
+    rootProject.extra[TASK_AGGREGATE_IMPORT_MAP] = true
+}
+
+private val Project.aggregateTaskProvider: TaskProvider<SupabaseFunctionAggregateImportMapTask>
+    get() = checkNotNull(
+        rootProject.tasks.named<SupabaseFunctionAggregateImportMapTask>(TASK_AGGREGATE_IMPORT_MAP)
+    ) {
+        "Aggregate task not found"
+    }
 
 private fun Project.registerGenerateBridgeTask(
     extension: SupabaseFunctionExtension,
@@ -139,7 +170,7 @@ private fun Project.registerDeployTask(extension: SupabaseFunctionExtension) {
         importMap.convention(extension.importMap)
 
         dependsOn(TASK_GENERATE_PRODUCTION_ENVIRONMENT)
-        dependsOn(TASK_AGGREGATE_IMPORT_MAP)
+        dependsOn(aggregateTaskProvider)
     }
 }
 
@@ -167,7 +198,7 @@ private fun Project.registerServeTask(extension: SupabaseFunctionExtension) {
         envFile.convention(extension.envFile.orNone())
 
         dependsOn(TASK_GENERATE_DEVELOPMENT_ENVIRONMENT)
-        dependsOn(TASK_AGGREGATE_IMPORT_MAP)
+        dependsOn(aggregateTaskProvider)
     }
 }
 
@@ -187,40 +218,11 @@ private fun Project.registerUpdateGitignoreTask(extension: SupabaseFunctionExten
     }
 }
 
-private fun Project.registerAggregateImportMapTask(
-    extension: SupabaseFunctionExtension,
-    importMapsDir: Provider<Directory>,
-) {
-    if (rootProject.extra.has(TASK_AGGREGATE_IMPORT_MAP)) {
-        return
-    }
-
-    val taskProvider = rootProject.tasks.register<SupabaseFunctionAggregateImportMapTask>(
-        name = TASK_AGGREGATE_IMPORT_MAP
-    ) {
-        group = SUPABASE_FUNCTION_TASK_GROUP
-        description = "Aggregate functions import maps."
-
-        this.importMapsDir.convention(importMapsDir)
-        supabaseDir.convention(extension.supabaseDir)
-    }
-
-    rootProject.tasks.named("prepareKotlinBuildScriptModel") {
-        dependsOn(taskProvider)
-    }
-
-    rootProject.extra[TASK_AGGREGATE_IMPORT_MAP] = taskProvider
-}
-
 private fun Project.registerGenerateImportMapTask(
     extension: SupabaseFunctionExtension,
-    jsDependenciesProvider: Provider<Collection<JsDependency>>,
-    importMapsDir: Provider<Directory>
+    jsDependenciesProvider: Provider<Collection<JsDependency>>
 ) {
-    if (!rootProject.extra.has(TASK_AGGREGATE_IMPORT_MAP)) {
-        error("Aggregate task provider not registered")
-    }
-    val taskProvider = tasks.register<SupabaseFunctionGenerateImportMapTask>(
+    val generateTaskProvider = tasks.register<SupabaseFunctionGenerateImportMapTask>(
         name = TASK_GENERATE_IMPORT_MAP
     ) {
         group = SUPABASE_FUNCTION_TASK_GROUP
@@ -229,12 +231,17 @@ private fun Project.registerGenerateImportMapTask(
         packageJsonDir.convention(layout.buildDirectory.dir("tmp/jsPublicPackageJson"))
         functionName.convention(extension.functionName)
         jsDependencies.convention(jsDependenciesProvider)
-        this.importMapsDir.convention(importMapsDir)
 
         dependsOn("jsPublicPackageJson")
     }
 
-    checkNotNull(rootProject.extra.get(TASK_AGGREGATE_IMPORT_MAP) as? TaskProvider<*>).configure {
-        dependsOn(taskProvider)
+    aggregateTaskProvider.configure {
+        val aggregateTask = apply {
+            dependsOn(generateTaskProvider)
+        }
+
+        generateTaskProvider.configure {
+            importMapsDir.convention(aggregateTask.importMapsDir)
+        }
     }
 }

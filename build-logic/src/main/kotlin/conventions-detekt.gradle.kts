@@ -1,3 +1,8 @@
+/**
+ * Copyright (c) 2024 Maanrifa Bacar Ali.
+ * Use of this source code is governed by the MIT license.
+ */
+
 import io.gitlab.arturbosch.detekt.Detekt
 import io.gitlab.arturbosch.detekt.DetektCreateBaselineTask
 import org.gradle.api.tasks.TaskProvider

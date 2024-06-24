@@ -1,3 +1,8 @@
+/**
+ * Copyright (c) 2024 Maanrifa Bacar Ali.
+ * Use of this source code is governed by the MIT license.
+ */
+
 import org.jetbrains.dokka.DokkaConfiguration
 import org.jetbrains.dokka.gradle.DokkaTaskPartial
 import java.net.URI
