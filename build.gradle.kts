@@ -3,9 +3,7 @@
  * Use of this source code is governed by the MIT license.
  */
 
-import org.jetbrains.dokka.DokkaConfiguration
-import org.jetbrains.dokka.gradle.DokkaTaskPartial
-import java.net.URI
+import org.jetbrains.dokka.gradle.DokkaMultiModuleTask
 
 buildscript {
     dependencies {
@@ -15,7 +13,7 @@ buildscript {
 
 plugins {
     alias(libs.plugins.detekt) apply false
-    alias(libs.plugins.dokka) apply false
+    alias(libs.plugins.dokka)
 }
 
 allprojects {
@@ -23,15 +21,16 @@ allprojects {
     version = rootProject.libs.versions.supabase.functions.get()
 }
 
-tasks.withType<DokkaTaskPartial>().configureEach {
-    dokkaSourceSets.configureEach {
-        documentedVisibilities = setOf(DokkaConfiguration.Visibility.PUBLIC)
+tasks.withType<DokkaMultiModuleTask> {
+    val dokkaDir = rootProject.layout.projectDirectory.dir("dokka")
 
-        // Read docs for more details: https://kotlinlang.org/docs/dokka-gradle.html#source-link-configuration
-        sourceLink {
-            localDirectory = rootProject.projectDir
-            remoteUrl = URI("https://github.com/manriif/supabase-functions-kt/tree/dev").toURL()
-            remoteLineSuffix = "#L"
-        }
-    }
+    includes = dokkaDir.files("MODULE.md")
+    moduleName = rootProject.property("project.name").toString()
+    outputDirectory = dokkaDir.dir("documentation")
+
+    pluginsMapConfiguration = mapOf(
+        "org.jetbrains.dokka.base.DokkaBase" to """{
+            "footerMessage": "© 2024 Maanrifa Bacar Ali."
+        }"""
+    )
 }

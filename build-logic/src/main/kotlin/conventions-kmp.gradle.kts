@@ -1,6 +1,6 @@
 plugins {
-    id("conventions-common")
     org.jetbrains.kotlin.multiplatform
+    id("conventions-common")
 }
 
 description = property("module.description").toString()

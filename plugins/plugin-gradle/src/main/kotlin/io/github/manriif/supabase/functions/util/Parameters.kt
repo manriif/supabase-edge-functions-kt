@@ -1,6 +1,6 @@
 package io.github.manriif.supabase.functions.util
 
-fun Map<String, String>.getBooleanOrDefault(key: String, default: Boolean): Boolean {
+internal fun Map<String, String>.getBooleanOrDefault(key: String, default: Boolean): Boolean {
     if (!containsKey(key)) {
         return default
     }
@@ -16,7 +16,7 @@ fun Map<String, String>.getBooleanOrDefault(key: String, default: Boolean): Bool
     return value.toBooleanStrictOrNull() ?: default
 }
 
-fun Map<String, String>.getLongOrDefault(key: String, default: Long = 0): Long {
+internal fun Map<String, String>.getLongOrDefault(key: String, default: Long = 0): Long {
     if (!containsKey(key)) {
         return default
     }

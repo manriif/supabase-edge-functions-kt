@@ -4,4 +4,5 @@
 
 build
 detekt/reports/**
+dokka/documentation/**
 local.properties
