@@ -1,4 +1,4 @@
-rootProject.name = "gradle-conventions"
+rootProject.name = "build-logic"
 
 @Suppress("UnstableApiUsage")
 dependencyResolutionManagement {

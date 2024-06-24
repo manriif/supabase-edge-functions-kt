@@ -19,6 +19,7 @@ plugins {
 allprojects {
     group = property("project.group").toString()
     version = rootProject.libs.versions.supabase.functions.get()
+    extra["isModule"] = path.startsWith(":modules")
 }
 
 tasks.withType<DokkaMultiModuleTask> {

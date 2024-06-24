@@ -10,12 +10,16 @@ tasks.withType<DokkaTaskPartial>().configureEach {
     suppressInheritedMembers = true
 
     dokkaSourceSets.configureEach {
+        val path = if (!project.isModule) project.name else {
+            "modules/${project.name.removePrefix("module-")}"
+        }
+
+        val url = "https://github.com/manriif/supabase-functions-kt/tree/dev/$path/src"
+
+        logger.error("isModule=${project.isModule}, path=$path, url=$url")
+
         documentedVisibilities = setOf(DokkaConfiguration.Visibility.PUBLIC)
         noStdlibLink = true
-
-        val (_, kind) = project.path.split(":")
-        val module = project.projectDir.name
-        val url = "https://github.com/manriif/supabase-functions-kt/tree/dev/$kind/$module/src"
 
         sourceLink {
             localDirectory = projectDir.resolve("src")

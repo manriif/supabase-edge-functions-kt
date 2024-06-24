@@ -3,7 +3,7 @@
  * Use of this source code is governed by the MIT license.
  */
 
-rootProject.name = "supabase-functions-kt"
+rootProject.name = "supabase-edge-functions-kt"
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
@@ -18,14 +18,12 @@ dependencyResolutionManagement {
     }
 }
 
-fun includeNamed(path: String, name: String) {
+fun includeModule(name: String) {
+    val path = ":modules:$name"
     include(path)
-    project(path).name = "supabase-functions-$name"
+    project(path).name = "module-$name"
 }
 
-fun includePlugin(name: String) = includeNamed(":plugins:plugin-$name", name)
-fun includeModule(name: String) = includeNamed(":modules:module-$name", name)
-
-includePlugin("gradle")
-includeModule("deno-bindings")
+include("gradle-plugin")
+includeModule("binding-deno")
 includeModule("fetch-json")
