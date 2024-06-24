@@ -12,6 +12,7 @@ buildscript {
 }
 
 plugins {
+    alias(libs.plugins.gradle.plugin.publish) apply false
     alias(libs.plugins.detekt) apply false
     alias(libs.plugins.dokka)
 }

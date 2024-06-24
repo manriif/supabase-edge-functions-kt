@@ -14,7 +14,7 @@ tasks.withType<DokkaTaskPartial>().configureEach {
             "modules/${project.name.removePrefix("module-")}"
         }
 
-        val url = "https://github.com/manriif/supabase-functions-kt/tree/dev/$path/src"
+        val url = "https://github.com/manriif/supabase-functions-kt/tree/main/$path/src"
 
         includes = project.layout.projectDirectory.files("MODULE.md")
         documentedVisibilities = setOf(DokkaConfiguration.Visibility.PUBLIC)

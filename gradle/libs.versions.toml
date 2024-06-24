@@ -7,6 +7,7 @@ jvm-target = "1.8"
 detekt = "1.23.6"
 dokka = "1.9.20"
 gradle-idea-ext = "1.1.8"
+gradle-plugin-publish = "1.2.1"
 kotlin = "2.0.0"
 kotlinpoet = "1.17.0"
 kotlinx-coroutines = "1.8.1"
@@ -20,6 +21,7 @@ conventions-kmp = { id = "conventions-kmp", version.ref = "supabase-functions" }
 
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
+gradle-plugin-publish = { id = "com.gradle.plugin-publish", version.ref = "gradle-plugin-publish" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlinx-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 
