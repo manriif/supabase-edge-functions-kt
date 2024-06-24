@@ -16,8 +16,7 @@ tasks.withType<DokkaTaskPartial>().configureEach {
 
         val url = "https://github.com/manriif/supabase-functions-kt/tree/dev/$path/src"
 
-        logger.error("isModule=${project.isModule}, path=$path, url=$url")
-
+        includes = project.layout.projectDirectory.files("MODULE.md")
         documentedVisibilities = setOf(DokkaConfiguration.Visibility.PUBLIC)
         noStdlibLink = true
 

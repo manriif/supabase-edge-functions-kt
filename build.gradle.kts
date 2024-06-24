@@ -25,13 +25,13 @@ allprojects {
 tasks.withType<DokkaMultiModuleTask> {
     val dokkaDir = rootProject.layout.projectDirectory.dir("dokka")
 
-    includes = dokkaDir.files("MODULE.md")
+    includes = dokkaDir.files("README.md")
     moduleName = rootProject.property("project.name").toString()
     outputDirectory = dokkaDir.dir("documentation")
 
     pluginsMapConfiguration = mapOf(
         "org.jetbrains.dokka.base.DokkaBase" to """{
-            "footerMessage": "© 2024 Maanrifa Bacar Ali."
+            "footerMessage": "© 2024 <a href=\"https://github.com/manriif\">Maanrifa Bacar Ali</a>."
         }"""
     )
 }
