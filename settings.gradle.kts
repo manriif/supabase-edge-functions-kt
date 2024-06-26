@@ -7,10 +7,18 @@ rootProject.name = "supabase-edge-functions-kt"
 
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
+pluginManagement {
+    includeBuild("build-logic")
+
+    repositories {
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
 @Suppress("UnstableApiUsage")
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.PREFER_PROJECT)
-    includeBuild("build-logic")
 
     repositories {
         mavenCentral()

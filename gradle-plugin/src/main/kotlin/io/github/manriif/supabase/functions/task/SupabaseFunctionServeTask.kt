@@ -95,13 +95,29 @@ abstract class SupabaseFunctionServeTask : DefaultTask() {
     abstract val stackTraceSourceMapStrategy: Property<StackTraceSourceMapStrategy>
 
     @Nested
-    val inspect = ServeInspect()
+    val autoRequest = ServeAutoRequest()
 
     @Nested
-    val autoRequest = ServeAutoRequest()
+    val inspect = ServeInspect()
 
     init {
         outputs.upToDateWhen { false }
+    }
+
+    /**
+     * Configure [autoRequest] in a DSL manner.
+     */
+    @Suppress("MemberVisibilityCanBePrivate")
+    fun autoRequest(action: ServeAutoRequest.() -> Unit) {
+        autoRequest.action()
+    }
+
+    /**
+     * Configure [inspect] in a DSL manner.
+     */
+    @Suppress("MemberVisibilityCanBePrivate")
+    fun inspect(action: ServeInspect.() -> Unit) {
+        inspect.action()
     }
 
     @TaskAction

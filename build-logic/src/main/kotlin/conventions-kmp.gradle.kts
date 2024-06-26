@@ -6,9 +6,8 @@
 plugins {
     org.jetbrains.kotlin.multiplatform
     id("conventions-common")
+    id("conventions-publish")
 }
-
-description = property("module.description").toString()
 
 kotlin {
     applyDefaultHierarchyTemplate()

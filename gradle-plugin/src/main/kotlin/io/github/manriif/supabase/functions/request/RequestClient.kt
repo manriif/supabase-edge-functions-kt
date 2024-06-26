@@ -267,13 +267,13 @@ internal class RequestClient(
             request to sendRequest(config, request, baseUrl)
         }
 
-        return entries.all valid@{ (request, response) ->
+        return entries.map valid@{ (request, response) ->
             if (options.logResponse && response != null) {
                 logResponse(request, response)
             }
 
             validateResponse(request, response)
-        }
+        }.all { it }
     }
 
     /**
@@ -369,7 +369,7 @@ internal class RequestClient(
         val message = """
             |
             |[${request.name}]
-            |Type: ${request.type}
+            |Type: ${request.type ?: "<not specified>"}
             |[Request]
             |Date: ${Date()}
             |Endpoint: ${response.uri()}

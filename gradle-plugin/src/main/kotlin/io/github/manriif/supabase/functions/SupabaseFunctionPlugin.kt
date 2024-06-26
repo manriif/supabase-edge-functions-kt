@@ -23,6 +23,7 @@ package io.github.manriif.supabase.functions
 
 import io.github.manriif.supabase.functions.kmp.kotlinVersion
 import io.github.manriif.supabase.functions.kmp.setupKotlinMultiplatform
+import io.github.manriif.supabase.functions.task.PREPARE_KOTLIN_BUILD_SCRIPT_MODEL_TASK
 import io.github.manriif.supabase.functions.task.configurePluginTasks
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -68,6 +69,11 @@ class SupabaseFunctionPlugin : Plugin<Project> {
         extension: SupabaseFunctionExtension,
         kmpExtension: KotlinMultiplatformExtension
     ) {
+        // Prevent plugin application on non-multiplatform project
+        if (rootProject.tasks.named { it == PREPARE_KOTLIN_BUILD_SCRIPT_MODEL_TASK }.isEmpty()) {
+            return
+        }
+
         setupKotlinMultiplatform(kmpExtension)
         configurePluginTasks(extension, kmpExtension)
     }

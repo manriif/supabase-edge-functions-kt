@@ -183,7 +183,7 @@ internal class ServeRunner(
         return RunContext(
             target = target(initOutputStream, mainOutputStream),
             stackTraceProcessor = stackTraceProcessor,
-            requestSender = requestClient,
+            requestClient = requestClient,
             mainOutputStream = mainOutputStream
         )
     }
@@ -192,7 +192,7 @@ internal class ServeRunner(
         val target: T,
         private val stackTraceProcessor: StackTraceProcessor,
         private val mainOutputStream: ServeMainOutputStream,
-        private val requestSender: RequestClient?
+        private val requestClient: RequestClient?
     ) {
 
         val lastMessage: String?
@@ -201,8 +201,7 @@ internal class ServeRunner(
         fun onBuildRefreshed() {
             stackTraceProcessor.reloadSourceMaps()
 
-
-            requestSender?.run {
+            requestClient?.run {
                 reloadConfigFile()
                 sendRequestsAsync()
             }

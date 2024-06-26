@@ -18,30 +18,16 @@ dependencies {
 
 @Suppress("UnstableApiUsage")
 gradlePlugin {
-    val url = "https://github.com/manriif/supabase-edge-functions-kt"
-
-    website.set(url)
-    vcsUrl.set(url)
+    website = projectWebsite
+    vcsUrl = projectGitUrl
 
     plugins {
         create("supabase-function") {
-            id = "io.github.manriif.supabase.functions"
+            id = projectGroup
             implementationClass = "io.github.manriif.supabase.functions.SupabaseFunctionPlugin"
             tags = setOf("kotlin", "supabase", "js", "edge-functions")
-            displayName = "Supabase Edge Functions for Kotlin - Gradle Plugin"
-
-            description = """
-                The plugin helps in building Supabase Edge Functions using Kotlin as primary programming language.
-                It offers support for multi-module project and Javascript sources.
-
-                Additionnaly, it provides gradle tasks for serving, inspecting and testing your functions locally and later deploying them to a remote project.
-            """.trimIndent()
+            displayName = localName
+            description = localDescription
         }
-    }
-}
-
-publishing {
-    repositories {
-        mavenLocal()
     }
 }
