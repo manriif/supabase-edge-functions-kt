@@ -468,7 +468,9 @@ internal class RequestClient(
             return true
         }
 
-        if (request.validation.status != response.statusCode()) {
+        val expectedStatus = request.validation.status ?: 200
+
+        if (expectedStatus != response.statusCode()) {
             logger.lifecycle(
                 errorValidationContent(
                     request = request,

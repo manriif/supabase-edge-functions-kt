@@ -29,31 +29,21 @@ import org.jetbrains.kotlin.gradle.targets.js.ir.KotlinJsIrTarget
 
 internal fun Project.jsOutputName(kmpExtension: KotlinMultiplatformExtension): Provider<String> {
     val defaultModuleName = defaultOutputName(this)
-    var moduleNameProvider = provider { "" }
 
-    kmpExtension.targets.withType<KotlinJsIrTarget>().configureEach {
-        moduleName?.let { targetModuleName ->
-            moduleNameProvider = moduleNameProvider.map { currentName ->
-                currentName.takeIf { it.isNotBlank() } ?: targetModuleName
-            }
-        }
+    return provider {
+        kmpExtension.targets.withType<KotlinJsIrTarget>().firstOrNull()?.moduleName
+            ?: defaultModuleName
     }
-
-    moduleNameProvider = moduleNameProvider.map { currentName ->
-        currentName.takeIf { it.isNotBlank() } ?: defaultModuleName
-    }
-
-    return moduleNameProvider
 }
 
 private fun defaultOutputName(project: Project): String {
-    var directory = project.projectDir
-    val directories = mutableListOf(directory)
+    var upperProject: Project? = project.parent
+    var moduleName = project.name
 
-    while (directory != project.rootDir) {
-        directory = directory.parentFile
-        directories.add(0, directory)
+    while (upperProject != null) {
+        moduleName = upperProject.name + "-" + moduleName
+        upperProject = upperProject.parent
     }
 
-    return directories.joinToString("-") { it.name }
+    return moduleName
 }

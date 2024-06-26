@@ -80,8 +80,6 @@ private fun RequestValidation.checkValidity(projectDir: DirectoryProperty, index
         "requests[$index].validation: $message"
     }
 
-    requireNotNull(status, message("required field `status` is missing"))
-
     if (type != null) {
         requireNotNull(body, message("required field `body`is missing"))
 
