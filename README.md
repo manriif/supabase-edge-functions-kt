@@ -96,9 +96,9 @@ suspend fun serve(request: Request): Response {
 After a successful gradle sync and if you are using an IntelliJ based IDE, you will see new run configurations for your function.
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="./docs/run_config_dark.png">
-  <source media="(prefers-color-scheme: light)" srcset="./docs/run_config_light.png">
-  <img alt="Run configurations" src="./docs/run_config_light.png">
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/manriif/supabase-edge-functions-kt/dev/docs/run_config_dark.png">
+  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/manriif/supabase-edge-functions-kt/dev/docs/run_config_light.png">
+  <img alt="Run configurations" src="https://raw.githubusercontent.com/manriif/supabase-edge-functions-kt/dev/docs/run_config_light.png">
 </picture>
 
 ## Features
