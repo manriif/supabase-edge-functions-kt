@@ -11,7 +11,7 @@ as primary programming language.
 [![Kotlin](https://img.shields.io/badge/kotlin-2.0.0-blue.svg?logo=kotlin)](http://kotlinlang.org)
 [![IR](https://img.shields.io/badge/Kotlin%2FJS-IR_only-yellow)](https://kotl.in/jsirsupported)
 [![API](https://img.shields.io/badge/API-dokka-green)]()
-[![Maven Central](https://img.shields.io/maven-central/v/io.github.manriif.supabase-functions?label=MavenCentral&logo=apache-maven)](https://search.maven.org/artifact/org.jetbrains.dokka/io.github.manriif.supabase-functions)
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.manriif.supabase-functions/github-plugin?label=MavenCentral&logo=apache-maven)](https://search.maven.org/artifact/org.jetbrains.dokka/io.github.manriif.supabase-functions)
 [![Gradle Plugin](https://img.shields.io/gradle-plugin-portal/v/io.github.manriif.supabase-functions?label=Gradle&logo=gradle)](https://plugins.gradle.org/plugin/io.github.manriif.supabase-functions)
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
 [![slack](https://img.shields.io/badge/slack-%23supabase--kt-purple.svg?logo=slack)](https://kotlinlang.slack.com/archives/C06QXPC7064)
@@ -91,7 +91,7 @@ suspend fun serve(request: Request): Response {
 }
 ```
 
-### Run configuration
+### Run
 
 After a successful gradle sync and if you are using an IntelliJ based IDE, you will see new run configurations for your function.
 
@@ -101,20 +101,27 @@ After a successful gradle sync and if you are using an IntelliJ based IDE, you w
   <img alt="Run configurations" src="https://raw.githubusercontent.com/manriif/supabase-edge-functions-kt/dev/docs/run_config_light.png">
 </picture>
 
+Run: 
+
+- `<function-name> deploy` for deploying the function to the remote project.
+- `<function-name> inspect` for inspecting the javascript code with Chrome DevTools.
+- `<function-name> request` for verifying the function.
+- `<function-name> serve` for serving the function locally.
+
 ## Features
 
 Belows the features offered by the plugin.
 
-| Name                    | ☑️  |
-|-------------------------|-----|
-| Write Kotlin code       | ✅️  |
-| Write Javascript code   | ✅️  |
-| NPM support             | ✅️  |
-| Serve function          | ✅️  |
-| Verify function         | ✅️  |
-| Deploy function         | ✅️  |
-| Import map              | ✅️  |
-| [Debugging](#debugging) | 🚧️ |
+| Name                           | ☑️  |
+|--------------------------------|-----|
+| Write Kotlin code              | ✅️  |
+| Write Javascript code          | ✅️  |
+| NPM support                    | ✅️  |
+| Serve function                 | ✅️  |
+| Verify function                | ✅️  |
+| [Deploy function](#deployment) | ✅️  |
+| [Import map](#import-map)      | ✅️  |
+| [Debugging](#debugging)        | 🚧️ |
 
 ## Modules
 
@@ -128,6 +135,14 @@ Available modules:
 
 ## Advanced usage
 
+### Continuous build
+
+The plugin provides first class support for Gradle continuous build and configuration cache.
+This results in faster builds and an uninterrupted development flow.
+
+Serve related tasks (serve, request, inspect) will automatically reload after file changes
+are detected by gradle.
+
 ### Main function
 
 The plugin will, by default, generate a kotlin function that acts as a bridge between your main 
@@ -137,7 +152,7 @@ function and the Deno serve function. This also results in the generation of the
 <details>
   <summary>Disable the bridge function</summary>
 
-If, for some reasons you do not want this behaviour, you can simply disable the task:
+If, for some reasons you do not want this behaviour, you can simply disable the related task:
 
 ```kotlin
 // function/build.gradle.kts
@@ -182,9 +197,71 @@ suspend fun handleRequest(request: Request): Response {
 ```
 </details>
 
+### Javascript
+
 ### Import map
 
-The plugin 
+The plugin automatically configures a single import_map.json file which take cares of NPM dependencies 
+and local js sources files. The file is generated under the `supabase/functions` directory and aggregates
+all the single import_map.json files of each individual function.
+
+You can specify this import_map.json file in your favorite JavaScript IDE and it's Deno configuration.
+
+<details>
+  <summary>Generate the import_map.json</summary>
+
+The task responsible for generating the file is triggered after a successful project sync but you can manually
+trigger it by running:
+
+`./gradlew :supabaseFunctionAggregateImportMap`
+
+</details>
+
+<details>
+  <summary>Disable the feature</summary>
+
+If, for some reasons you want to manually manage the import map, you can disable the related task(s):
+
+<details>
+  <summary>For a single function</summary>
+
+```kotlin
+// function/build.gradle.kts
+
+supabaseFunction {
+    importMap = false
+}
+
+tasks {
+    supabaseFunctionGenerateImportMap {
+        enabled = false
+    }
+}
+```
+
+</details>
+
+<details>
+  <summary>For all functions</summary>
+
+```kotlin
+// <root>/build.gradle.kts
+
+tasks.withType<SupabaseFunctionAggregateImportMapTask> {
+    enabled = false
+}
+```
+</details>
+
+Keep in mind that you should manually create and populate necessary import_map.json file(s).
+
+</details>
+
+### Automatic request
+
+### Deployment
+
+Production
 
 ### Debugging
 
