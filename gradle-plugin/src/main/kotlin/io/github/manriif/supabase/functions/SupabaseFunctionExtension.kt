@@ -21,6 +21,7 @@
  */
 package io.github.manriif.supabase.functions
 
+import io.github.manriif.supabase.functions.idea.RunConfigurationOptions
 import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.file.DirectoryProperty

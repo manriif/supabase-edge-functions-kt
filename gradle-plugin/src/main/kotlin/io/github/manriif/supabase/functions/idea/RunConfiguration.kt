@@ -19,8 +19,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package io.github.manriif.supabase.functions
+package io.github.manriif.supabase.functions.idea
 
+import io.github.manriif.supabase.functions.PARAMETER_AUTO_REQUEST
+import io.github.manriif.supabase.functions.PARAMETER_INSPECT
+import io.github.manriif.supabase.functions.SupabaseFunctionExtension
 import io.github.manriif.supabase.functions.task.TASK_FUNCTION_DEPLOY
 import io.github.manriif.supabase.functions.task.TASK_FUNCTION_SERVE
 import org.gradle.api.Project
@@ -74,7 +77,29 @@ data class RunConfigurationOptions(
      * [ServeRunConfiguration] for serving the function and automatically send requests.
      */
     var request: ServeRunConfiguration = ServeRunConfiguration()
-)
+) {
+
+    /**
+     * Configure serve run configuration in a DSL manner.
+     */
+    fun serve(action: ServeRunConfiguration.() -> Unit) {
+        action(serve)
+    }
+
+    /**
+     * Configure inspect run configuration in a DSL manner.
+     */
+    fun inspect(action: ServeRunConfiguration.() -> Unit) {
+        action(inspect)
+    }
+
+    /**
+     * Configure request run configuration in a DSL manner.
+     */
+    fun request(action: ServeRunConfiguration.() -> Unit) {
+        action(request)
+    }
+}
 
 ///////////////////////////////////////////////////////////////////////////
 // IDEA Configurations
@@ -121,10 +146,12 @@ private fun Project.registerIdeaGradleConfiguration(
 
 private fun Gradle.configureServe(
     configuration: ServeRunConfiguration,
-    parameters: String = ""
+    params: String? = null
 ) {
-    if (configuration.continuous) {
-        scriptParameters = "$parameters --continuous"
+    when {
+        configuration.continuous && params != null -> scriptParameters = "$params --continuous"
+        configuration.continuous && params == null -> scriptParameters = "--continuous"
+        params != null -> scriptParameters = params
     }
 }
 

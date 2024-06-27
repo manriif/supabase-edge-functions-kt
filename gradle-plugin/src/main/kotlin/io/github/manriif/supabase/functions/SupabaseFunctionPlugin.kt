@@ -21,6 +21,7 @@
  */
 package io.github.manriif.supabase.functions
 
+import io.github.manriif.supabase.functions.idea.configureIdeaGradleConfigurations
 import io.github.manriif.supabase.functions.kmp.kotlinVersion
 import io.github.manriif.supabase.functions.kmp.setupKotlinMultiplatform
 import io.github.manriif.supabase.functions.task.PREPARE_KOTLIN_BUILD_SCRIPT_MODEL_TASK
