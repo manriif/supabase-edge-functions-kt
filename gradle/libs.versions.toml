@@ -19,6 +19,7 @@ vanniktech-maven-publish = "0.29.0"
 [plugins]
 
 conventions-common = { id = "conventions-common", version.ref = "supabase-functions" }
+conventions-publish = { id = "conventions-publish", version.ref = "supabase-functions" }
 conventions-kmp = { id = "conventions-kmp", version.ref = "supabase-functions" }
 
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
