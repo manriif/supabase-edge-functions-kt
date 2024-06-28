@@ -6,7 +6,6 @@
 plugins {
     `kotlin-dsl`
     alias(libs.plugins.conventions.common)
-    alias(libs.plugins.conventions.publish)
     alias(libs.plugins.gradle.plugin.publish)
 }
 
