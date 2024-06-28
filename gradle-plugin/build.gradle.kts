@@ -16,6 +16,12 @@ dependencies {
     implementation(libs.atlassian.sourcemap)
 }
 
+kotlin {
+    jvmToolchain {
+        languageVersion = JavaLanguageVersion.of(libs.versions.jvm.target.get())
+    }
+}
+
 @Suppress("UnstableApiUsage")
 gradlePlugin {
     website = projectWebsite

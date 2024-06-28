@@ -12,6 +12,10 @@ plugins {
 kotlin {
     applyDefaultHierarchyTemplate()
 
+    jvmToolchain {
+        languageVersion = JavaLanguageVersion.of(libs.versions.jvm.target.get())
+    }
+
     js(IR) {
         useEsModules()
 
