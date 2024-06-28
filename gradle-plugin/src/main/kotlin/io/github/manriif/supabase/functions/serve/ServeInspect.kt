@@ -36,7 +36,8 @@ data class ServeInspect(
     var mode: Mode = Mode.Brk,
 
     /**
-     * Allows the creation of an inspector session which is not allowed by default.
+     * Allows the creation of an inspector session for the main worker which is not allowed by
+     * default.
      */
     @Input
     var main: Boolean = false,

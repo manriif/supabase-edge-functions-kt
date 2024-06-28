@@ -7,7 +7,7 @@ Build, serve and deploy Supabase Edge Functions with Kotlin and Gradle.
 The project aims to bring the ability of writing and deploying Supabase Edge Functions using Kotlin
 as primary programming language.
 
-[![](https://img.shields.io/badge/Stability-experimental-orange)]()
+[![](https://img.shields.io/badge/Stability-experimental-orange)](#project-stability)
 [![Kotlin](https://img.shields.io/badge/kotlin-2.0.0-blue.svg?logo=kotlin)](http://kotlinlang.org)
 [![IR](https://img.shields.io/badge/Kotlin%2FJS-IR_only-yellow)](https://kotl.in/jsirsupported)
 [![API](https://img.shields.io/badge/API-dokka-green)]()
@@ -157,7 +157,7 @@ function and the Deno serve function. This also results in the generation of the
 file.
 
 <details>
-  <summary>Disable the bridge function</summary>
+  <summary>Disable the task</summary><br>
 
 If, for some reasons you do not want this behaviour, you can simply disable the related task:
 
@@ -176,7 +176,7 @@ It is then your responsibility to connect the two worlds.
 </details>
 
 <details>
-  <summary>Change the main function name</summary>
+  <summary>Change the main function name</summary><br>
 
 By default the main function name is `serve`.
 If this name struggles seducing you, you can change it by editing your function level build script.
@@ -208,16 +208,17 @@ suspend fun handleRequest(request: Request): Response {
 ### JavaScript
 
 You can embed local JavaScript sources from a subproject, other subproject or even through a
-composite build project. 
-The JavaScript source code must be placed in the `src/<source-set>/js` of the target project.
-There is no restriction regarding the kotlin source-set. It can be `commonMain`, `jsMain`, both, 
-or any other source-set that the `jsMain` source-set depends on. 
-This gives you complete flexibility on how you structure your modules.
+composite build project.
 
 <details>
-  <summary>JavaScript rules</summary>
+  <summary>Rules</summary><br>
 
 Working with JavaScript must be done according to a few rules:
+
+- The JavaScript source code must be placed in the `src/<source-set>/js` of the target project.
+There is no restriction regarding the kotlin source-set. It can be `commonMain`, `jsMain`, both,
+or any other source-set that the `jsMain` source-set depends on.
+This gives you complete flexibility on how you structure your modules.
 
 - There cannot be the same file (same name and same path relative to the `js` directory) within two
 different source-sets of the same project (module).
@@ -226,10 +227,13 @@ different source-sets of the same project (module).
 This keyword ensures proper resolution of js files among all included projects and depending on
 the call site.
 
+Note that this functionality relies on `import_map.json` and it is your responsibility to hand-write 
+these rules in case you have disabled the import map task.
+
 </details>
 
 <details>
-<summary>Import an exported Kotlin function into a JavaScript file</summary>
+<summary>Import an exported Kotlin function into a JavaScript file</summary><br>
 
 ```javascript
 // src/jsMain/js/bonjour.js
@@ -245,7 +249,7 @@ More explanation on how to consume Kotlin code from JavaScript [here](https://ko
 </details>
 
 <details>
-<summary>Import an exported JavaScript function into a Kotlin file</summary>
+<summary>Import an exported JavaScript function into a Kotlin file</summary><br>
 
 ```kotlin
 // src/jsMain/kotlin/org/example/function/Bonjour.kt
@@ -268,7 +272,7 @@ all the single `import_map.json` files of each individual function.
 You can specify this import_map.json file in your favorite JavaScript IDE and it's Deno configuration.
 
 <details>
-  <summary>Generate the import_map.json</summary>
+  <summary>Generate the import_map.json</summary><br>
 
 The task responsible for generating the file is triggered after a successful project sync but you can manually
 trigger it by running:
@@ -278,7 +282,7 @@ trigger it by running:
 </details>
 
 <details>
-<summary>Modify the generated file</summary>
+<summary>Modify the generated file</summary><br>
 
 You can add entries to the generated `import_map.json` by writing your own
 `import_map_template.json` file under the `supabase/functions` directory. 
@@ -291,12 +295,12 @@ Do not directly modify the generated `import_map.json` as it will be overwritten
 </details>
 
 <details>
-  <summary>Disable the feature</summary>
+  <summary>Disable the feature</summary><br>
 
 If, for some reasons you want to manually manage the import map, you can disable the related task(s):
 
 <details>
-  <summary>For a single function</summary>
+  <summary>For a single function</summary><br>
 
 ```kotlin
 // <function>/build.gradle.kts
@@ -315,7 +319,7 @@ tasks {
 </details>
 
 <details>
-  <summary>For all functions</summary>
+  <summary>For all functions</summary><br>
 
 ```kotlin
 // <root>/build.gradle.kts
@@ -336,7 +340,7 @@ With the aim of limiting tools and speeding up function development time, the pl
 ability to automatically send preconfigured requests to the function endpoint.
 
 <details>
-  <summary>Configuration</summary>
+  <summary>Configuration</summary><br>
 
 Under the project (function) directory, create a `request-config.json` file:
 
@@ -409,12 +413,12 @@ gradle script:
 
 And:
 
-`./gradlew :functions:hello-world:supabaseFunctionServe -PsupFunLogResponse -PsubFunLogStatus`
+`./gradlew :path:to:function:supabaseFunctionServe -PsupFunLogResponse -PsubFunLogStatus`
 
 </details>
 
 <details>
-  <summary>Continuous build</summary>
+  <summary>Continuous build</summary><br>
 
 When using continuous build, requests are sent after files changes are detected by gradle.
 However, depending on your function size, the requests may be sent too quickly and not allow enough 
@@ -440,20 +444,97 @@ it while the task is running.
 
 </details>
 
+<details>
+<summary>Request</summary>
+
+You can auto request a function by running the `<function> request` run configuration or by running
+the gradle command:
+
+`./gradlew :path:to:function:supabaseFunctionServe -PsupFunAutoRequest`
+
+</details> 
+
 ### Debugging
 
-#### Logging
+<details>
+<summary>Logging</summary>
 
-#### Inspection
+Log events that are printed to the terminal window are explained [here](https://supabase.com/docs/guides/functions/logging#events-that-get-logged). 
+Thus, you can print your own custom log events.
 
-#### Kotlin code
+For uncaught exception logs, stacktrace files are resolved relatively to your local file system.
+
+Regarding Kotlin code, the plugin offers the possibility to map the generated javascript file to the 
+Kotlin source file to facilitate debugging. On the other hand, this may not be as accurate, especially 
+because of inlining and suspension. That's why this feature is marked as experimental. 
+
+To apply source mapping: 
+
+```kotlin
+// <function>/build.gradle.kts
+
+tasks {
+    supabaseFunctionServe {
+        @OptIn(ExperimentalSupabaseFunctionApi::class)
+        stackTraceSourceMapStrategy = StackTraceSourceMapStrategy.KotlinPreferred
+        // or if you don't want to hear about js
+        stackTraceSourceMapStrategy = StackTraceSourceMapStrategy.KotlinOnly
+    }
+}
+```
+
+</details>
+
+<details>
+<summary>JavaScript code</summary><br>
+
+It is possible to use Chrome DevTools for JavaScript debugging as specified [here](https://supabase.com/docs/guides/functions/debugging-tools).
+By default, the inspect mode is `brk`, if you want to change it:
+
+```kotlin
+// <function>/build.gradle.kts
+
+tasks {
+    supabaseFunctionServe {
+        inspect {
+            mode = ServeInspect.Mode.Wait // default to ServeInspect.Mode.Brk
+            main = true // create an inspector session for the main worker, default to false
+            debug = true // pass --debug flag to the serve command, default to false
+        }
+    }
+}
+```
+
+</details>
+
+<details>
+<summary>Kotlin code 🚧️</summary><br>
+
+Currently it is not possible to debug Kotlin code.
+This is the project's next major feature.
+
+As this is not a trivial task and due to lack of time, it may take some time before such a feature
+is released. The feature would likely take the form of an IDEA plugin because this goes beyond the 
+scope of a gradle plugin.
+
+</details>
+
+<details>
+<summary>Inspect</summary><br>
+
+You can inspect a function by running the `<function> inspect` run configuration or by running
+the gradle command:
+
+`./gradlew :path:to:function:supabaseFunctionServe -PsupFunInspect`
+
+</details> 
 
 ### Run configurations
 
 Run configurations, for each function, are automatically created for IntelliJ based IDEs.
 
 <details>
-<summary>Configure</summary>
+<summary>Configure</summary><br>
 
 You can choose which run configuration to generate:
 
@@ -486,13 +567,20 @@ supabaseFunction {
 
 ### Deployment
 
-Function can be deployed to the remote project by running the `<function> deploy` run configuration or by running 
+Function can be deployed to the remote project from the plugin.
+
+<details>
+<summary>Deploy</summary>
+
+You can deploy a function by running the `<function> deploy` run configuration or by running
 the gradle command:
 
-`./gradlew functions:hello-world:supabaseFunctionDeploy`
+`./gradlew :path:to:function:supabaseFunctionDeploy`
 
-Before deploying the function, make sure you have correctly [linked](https://supabase.com/docs/reference/cli/supabase-link) 
+Before deploying the function, make sure you have correctly [linked](https://supabase.com/docs/reference/cli/supabase-link)
 the remote project.
+
+</details> 
 
 ### Gitignore
 
@@ -501,7 +589,7 @@ the plugin provides a task for creating or updating necessary `.gitignore` files
 files will not be overwritten but completed with missing entries.
 
 <details>
-<summary>Disable or edit the task</summary>
+<summary>Disable or edit the task</summary><br>
 
 You can disable the task or change its behaviour at the project level:
 
@@ -521,6 +609,13 @@ tasks {
 
 </details>
 
+## Project stability
+
+The project is currently in an experimental phase due to its freshness and reliance on 
+experimental features such as [Kotlin JsExport](https://kotlinlang.org/docs/js-to-kotlin-interop.html#jsexport-annotation).
+
+It should therefore be consumed in moderation.
+
 ## Limitations
 
 Following limitations applies:
@@ -528,4 +623,4 @@ Following limitations applies:
 - Kotlin versions before 2.0 are not supported
 - browser JS subtarged is not supported
 - `per-file` and `whole-program` JS IR [output granularity](https://kotlinlang.org/docs/js-ir-compiler.html#output-mode) are not supported.
-- Depending on a Kotlin library that uses require() may lead to runtime error
+- Depending on a Kotlin library that uses require() may result in runtime error
