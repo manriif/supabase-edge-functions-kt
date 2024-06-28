@@ -1,9 +1,9 @@
 [versions]
 
 # Projct version
-supabase-functions = "0.0.1"
+supabase-functions = "0.0.2"
 
-jvm-target = "1.8"
+jvm-target = "11"
 
 detekt = "1.23.6"
 dokka = "1.9.20"
