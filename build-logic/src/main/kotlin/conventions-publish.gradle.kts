@@ -1,3 +1,5 @@
+import com.vanniktech.maven.publish.SonatypeHost
+
 /**
  * Copyright (c) 2024 Maanrifa Bacar Ali.
  * Use of this source code is governed by the MIT license.
@@ -9,6 +11,15 @@ plugins {
 }
 
 mavenPublishing {
+    publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
+    signAllPublications()
+
+    coordinates(
+        groupId = projectGroup,
+        artifactId = project.name,
+        version = libs.versions.supabase.functions.get()
+    )
+
     pom {
         name = localName
         description = localDescription
