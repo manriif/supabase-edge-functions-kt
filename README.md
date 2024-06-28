@@ -32,7 +32,7 @@ If you plan to write multiple functions, declare the plugin in the root build sc
 // <root>/build.gradle.kts
 
 plugins {
-    id("io.github.manriif.supabase-functions") version "0.0.1" apply false
+    id("io.github.manriif.supabase-functions") version "<latest-version>" apply false
 }
 ```
 
