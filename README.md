@@ -1,4 +1,5 @@
 [example]: https://github.com/manriif/supabase-edge-functions-kt-example
+[website]: https://manriif.github.io/supabase-edge-functions-kt
 
 # Supabase Edge Functions Kotlin
 
@@ -10,7 +11,7 @@ as primary programming language.
 [![](https://img.shields.io/badge/Stability-experimental-orange)](#project-stability)
 [![Kotlin](https://img.shields.io/badge/kotlin-2.0.0-blue.svg?logo=kotlin)](http://kotlinlang.org)
 [![IR](https://img.shields.io/badge/Kotlin%2FJS-IR_only-yellow)](https://kotl.in/jsirsupported)
-[![API](https://img.shields.io/badge/API-dokka-green)]()
+[![API](https://img.shields.io/badge/API-dokka-green)][website]
 [![Maven Central](https://img.shields.io/maven-central/v/io.github.manriif.supabase-functions/github-plugin?label=MavenCentral&logo=apache-maven)](https://search.maven.org/artifact/org.jetbrains.dokka/io.github.manriif.supabase-functions)
 [![Gradle Plugin](https://img.shields.io/gradle-plugin-portal/v/io.github.manriif.supabase-functions?label=Gradle&logo=gradle)](https://plugins.gradle.org/plugin/io.github.manriif.supabase-functions)
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
@@ -102,9 +103,9 @@ suspend fun serve(request: Request): Response {
 After a successful gradle sync and if you are using an IntelliJ based IDE, you will see new run configurations for your function.
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/manriif/supabase-edge-functions-kt/dev/docs/run_config_dark.png">
-  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/manriif/supabase-edge-functions-kt/dev/docs/run_config_light.png">
-  <img alt="Run configurations" src="https://raw.githubusercontent.com/manriif/supabase-edge-functions-kt/dev/docs/run_config_light.png">
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/manriif/supabase-edge-functions-kt/main/readme/run_config_dark.png">
+  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/manriif/supabase-edge-functions-kt/main/readme/run_config_light.png">
+  <img alt="Run configurations" src="https://raw.githubusercontent.com/manriif/supabase-edge-functions-kt/main/readme/run_config_light.png">
 </picture>
 
 Run: 

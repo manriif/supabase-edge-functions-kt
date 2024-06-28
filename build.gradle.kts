@@ -3,6 +3,7 @@
  * Use of this source code is governed by the MIT license.
  */
 
+import org.jetbrains.dokka.gradle.AbstractDokkaTask
 import org.jetbrains.dokka.gradle.DokkaMultiModuleTask
 
 plugins {
@@ -17,6 +18,14 @@ allprojects {
     group = property("project.group").toString()
     version = rootProject.libs.versions.supabase.functions.get()
     extra["isModule"] = path.startsWith(":modules")
+
+    val dokkaBase = """{
+        "footerMessage": "© 2024 <a href=\"https://github.com/manriif\">Maanrifa Bacar Ali</a>."
+    }"""
+
+    tasks.withType<AbstractDokkaTask>().configureEach {
+        pluginsMapConfiguration = mapOf("org.jetbrains.dokka.base.DokkaBase" to dokkaBase)
+    }
 }
 
 tasks.withType<DokkaMultiModuleTask> {
@@ -25,10 +34,4 @@ tasks.withType<DokkaMultiModuleTask> {
     includes = dokkaDir.files("README.md")
     moduleName = rootProject.property("project.name").toString()
     outputDirectory = dokkaDir.dir("documentation")
-
-    pluginsMapConfiguration = mapOf(
-        "org.jetbrains.dokka.base.DokkaBase" to """{
-            "footerMessage": "© 2024 <a href=\"https://github.com/manriif\">Maanrifa Bacar Ali</a>."
-        }"""
-    )
 }
