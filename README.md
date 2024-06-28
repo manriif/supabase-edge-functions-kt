@@ -12,7 +12,7 @@ as primary programming language.
 [![Kotlin](https://img.shields.io/badge/kotlin-2.0.0-blue.svg?logo=kotlin)](http://kotlinlang.org)
 [![IR](https://img.shields.io/badge/Kotlin%2FJS-IR_only-yellow)](https://kotl.in/jsirsupported)
 [![API](https://img.shields.io/badge/API-dokka-green)][website]
-[![Maven Central](https://img.shields.io/maven-central/v/io.github.manriif.supabase-functions/github-plugin?label=MavenCentral&logo=apache-maven)](https://search.maven.org/artifact/org.jetbrains.dokka/io.github.manriif.supabase-functions)
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.manriif.supabase-functions/gradle-plugin?label=MavenCentral&logo=apache-maven)](https://central.sonatype.com/artifact/io.github.manriif.supabase-functions/gradle-plugin)
 [![Gradle Plugin](https://img.shields.io/gradle-plugin-portal/v/io.github.manriif.supabase-functions?label=Gradle&logo=gradle)](https://plugins.gradle.org/plugin/io.github.manriif.supabase-functions)
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
 [![slack](https://img.shields.io/badge/slack-%23supabase--kt-purple.svg?logo=slack)](https://kotlinlang.slack.com/archives/C06QXPC7064)
