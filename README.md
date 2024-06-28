@@ -118,17 +118,17 @@ Run:
 
 Belows the features offered by the plugin.
 
-| Name                           | ☑️  |
-|--------------------------------|-----|
-| Write Kotlin code              | ✅️  |
-| Write Javascript code          | ✅️  |
-| NPM support                    | ✅️  |
-| Multi-module support           | ✅️  |
-| Serve function                 | ✅️  |
-| Verify function                | ✅️  |
-| [Deploy function](#deployment) | ✅️  |
-| [Import map](#import-map)      | ✅️  |
-| [Debugging](#debugging)        | 🚧️ |
+| Name                                  | ☑️  |
+|---------------------------------------|-----|
+| Write Kotlin code                     | ✅️  |
+| Write Javascript code                 | ✅️  |
+| NPM support                           | ✅️  |
+| Multi-module support                  | ✅️  |
+| Serve function                        | ✅️  |
+| [Verify function](#automatic-request) | ✅️  |
+| [Deploy function](#deployment)        | ✅️  |
+| [Import map](#import-map)             | ✅️  |
+| [Debugging](#debugging)               | 🚧️ |
 
 ## Modules
 
@@ -205,7 +205,7 @@ suspend fun handleRequest(request: Request): Response {
 ```
 </details>
 
-### Javascript
+### JavaScript
 
 You can embed local JavaScript sources from a subproject, other subproject or even through a
 composite build project. 
@@ -417,7 +417,7 @@ And:
   <summary>Continuous build</summary>
 
 When using continuous build, requests are sent after files changes are detected by gradle.
-However, depending on your function size, the requests may be sent to quickly and not allow enough 
+However, depending on your function size, the requests may be sent too quickly and not allow enough 
 time for the supabase hot loader to process the changes. This can lead to race condition issues and
 results in edge function invocation error.
 
@@ -440,10 +440,6 @@ it while the task is running.
 
 </details>
 
-### Deployment
-
-Production
-
 ### Debugging
 
 #### Logging
@@ -452,8 +448,84 @@ Production
 
 #### Kotlin code
 
-### Gitignore
-
 ### Run configurations
 
+Run configurations, for each function, are automatically created for IntelliJ based IDEs.
+
+<details>
+<summary>Configure</summary>
+
+You can choose which run configuration to generate:
+
+```kotlin
+// <function>/build.gradle.kts
+
+supabaseFunction {
+    runConfiguration {
+        deploy = false           // Enable the deploy run configuration, true by default
+
+        serve {                  // Serve run configuration
+            enabled = false      // Enable the configuration, true by default
+            continuous = false   // continuous build enabled by default, true by default
+        }
+
+        inspect {                // Inspect run configuration
+            enabled = false      // Enable the configuration, true by default
+            continuous = false   // continuous build enabled by default, true by default
+        }
+
+        request {                // Request run configuration
+            enabled = false      // Enable the configuration, true by default
+            continuous = false   // continuous build enabled by default, true by default
+        }
+    }
+}
+```
+
+</details>
+
+### Deployment
+
+Function can be deployed to the remote project by running the `<function> deploy` run configuration or by running 
+the gradle command:
+
+`./gradlew functions:hello-world:supabaseFunctionDeploy`
+
+Before deploying the function, make sure you have correctly [linked](https://supabase.com/docs/reference/cli/supabase-link) 
+the remote project.
+
+### Gitignore
+
+It is generally a good practice not to import files that are generated to VCS. Thus, and by its nature,
+the plugin provides a task for creating or updating necessary `.gitignore` files. Existing `.gitignore `
+files will not be overwritten but completed with missing entries.
+
+<details>
+<summary>Disable or edit the task</summary>
+
+You can disable the task or change its behaviour at the project level:
+
+```kotlin
+// <function>/build.gradle.kts
+
+tasks {
+    supabaseFunctionServe {
+        enabled = false // Disable the task
+        importMapEntry = false // Prevent the task from adding the import_map.json to .gitignore
+                               // This could be necessary if you manually configured the import map
+        indexEntry = false // Prevent the task from adding the index.ts to .gitignore
+                           // This could be necessary if you manually created the index.ts file
+    }
+}
+```
+
+</details>
+
 ## Limitations
+
+Following limitations applies:
+
+- Kotlin versions before 2.0 are not supported
+- browser JS subtarged is not supported
+- `per-file` and `whole-program` JS IR [output granularity](https://kotlinlang.org/docs/js-ir-compiler.html#output-mode) are not supported.
+- Depending on a Kotlin library that uses require() may lead to runtime error
