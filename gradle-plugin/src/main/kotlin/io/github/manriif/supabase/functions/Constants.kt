@@ -31,6 +31,7 @@ internal const val COROUTINES_VERSION_GRADLE_PROPERTY = "supabase.functions.coro
 internal const val DENO_KOTLIN_BRIDGE_FUNCTION_NAME = "denoKotlinBridge"
 internal const val KOTLIN_MAIN_FUNCTION_NAME = "serve"
 
+internal const val IMPORT_MAPS_DIRECTORY_NAME = "importMaps"
 internal const val GITIGNORE_FILE_NAME = ".gitignore"
 internal const val IMPORT_MAP_TEMPLATE_FILE_NAME = "import_map_template.json"
 internal const val IMPORT_MAP_FILE_NAME = "import_map.json"

@@ -22,13 +22,13 @@
 package io.github.manriif.supabase.functions.util
 
 import org.gradle.api.Project
-import org.gradle.api.file.RegularFile
+import org.gradle.api.file.FileSystemLocation
 import org.gradle.api.provider.Provider
 
 /**
  * Returns a [Provider] that will provides the file ony if it exists.
  */
-internal fun Provider<RegularFile>.orNone(): Provider<RegularFile> {
+internal fun <T : FileSystemLocation> Provider<T>.orNone(): Provider<T> {
     @Suppress("UnstableApiUsage")
     return filter { it.asFile.exists() }
 }
@@ -36,6 +36,6 @@ internal fun Provider<RegularFile>.orNone(): Provider<RegularFile> {
 /**
  * Returns a [Provider] that will provides the file ony if it exists.
  */
-internal fun RegularFile.orNone(project: Project): Provider<RegularFile> {
+internal fun <T : FileSystemLocation> T.orNone(project: Project): Provider<T> {
     return project.provider { this }.orNone()
 }

@@ -29,13 +29,15 @@ import io.github.manriif.supabase.functions.JS_SOURCES_INPUT_DIR
 import io.github.manriif.supabase.functions.kmp.JsDependency
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.InputDirectory
+import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
+import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
@@ -64,9 +66,10 @@ abstract class SupabaseFunctionGenerateImportMapTask : DefaultTask() {
     @get:Internal
     internal abstract val importMapsDir: DirectoryProperty
 
-    @get:InputDirectory
+    @get:InputFile
+    @get:Optional
     @get:PathSensitive(PathSensitivity.RELATIVE)
-    internal abstract val packageJsonDir: DirectoryProperty
+    internal abstract val packageJsonFile: RegularFileProperty
 
     @get:Input
     internal abstract val functionName: Property<String>
@@ -94,8 +97,7 @@ abstract class SupabaseFunctionGenerateImportMapTask : DefaultTask() {
 
     private fun createFunctionImports(): JsonObject {
         val imports = JsonObject()
-        val packageJsonFile = packageJsonDir.file("package.json").get().asFile
-        val packageJson = fromSrcPackageJson(packageJsonFile) ?: return imports
+        val packageJson = fromSrcPackageJson(packageJsonFile.orNull?.asFile) ?: return imports
 
         packageJson.dependencies.forEach { (packageName, version) ->
             imports.addProperty(packageName, "npm:$packageName@$version")

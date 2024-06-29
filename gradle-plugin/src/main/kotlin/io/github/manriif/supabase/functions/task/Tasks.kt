@@ -21,6 +21,7 @@
  */
 package io.github.manriif.supabase.functions.task
 
+import io.github.manriif.supabase.functions.IMPORT_MAPS_DIRECTORY_NAME
 import io.github.manriif.supabase.functions.IMPORT_MAP_TEMPLATE_FILE_NAME
 import io.github.manriif.supabase.functions.KOTLIN_MAIN_FUNCTION_NAME
 import io.github.manriif.supabase.functions.REQUEST_CONFIG_FILE_NAME
@@ -43,6 +44,7 @@ import org.gradle.kotlin.dsl.support.uppercaseFirstChar
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 
 internal const val PREPARE_KOTLIN_BUILD_SCRIPT_MODEL_TASK = "prepareKotlinBuildScriptModel"
+internal const val JS_PUBLIC_PACKAGE_JSON_TASK = "jsPublicPackageJson"
 
 internal const val TASK_PREFIX = "supabaseFunction"
 internal const val TASK_GENERATE_ENVIRONMENT_TEMPLATE = "${TASK_PREFIX}CopyKotlin%s"
@@ -70,7 +72,7 @@ internal fun Project.configurePluginTasks(
     val jsDependenciesProvider = jsDependencies()
 
     registerGenerateImportMapTask(extension, jsDependenciesProvider)
-    registerGenerateBridgeTask(extension, kmpExtension)
+    registerGenerateKotlinBridgeTask(extension, kmpExtension)
     registerCopyJsTask(extension, jsDependenciesProvider)
     registerCopyKotlinTask(extension, "development")
     registerCopyKotlinTask(extension, "production")
@@ -98,7 +100,7 @@ private fun Project.registerAggregateImportMapTask(extension: SupabaseFunctionEx
         supabaseDir.convention(extension.supabaseDir)
 
         importMapsDir.convention(
-            layout.buildDirectory.dir("${SUPABASE_FUNCTION_OUTPUT_DIR}/importMaps")
+            layout.buildDirectory.dir("${SUPABASE_FUNCTION_OUTPUT_DIR}/$IMPORT_MAPS_DIRECTORY_NAME")
         )
 
         importMapTemplateFile.convention(
@@ -120,16 +122,11 @@ private val Project.aggregateTaskProvider: TaskProvider<SupabaseFunctionAggregat
         "Aggregate task not found"
     }
 
-private fun Project.registerGenerateBridgeTask(
+private fun Project.registerGenerateKotlinBridgeTask(
     extension: SupabaseFunctionExtension,
     kmpExtension: KotlinMultiplatformExtension
 ) {
-    val sourceSet = kmpExtension.sourceSets.findByName("jsMain") ?: return
-
-    val outputDir = layout.buildDirectory
-        .dir("generated/$SUPABASE_FUNCTION_OUTPUT_DIR/${sourceSet.name}/src")
-
-    sourceSet.kotlin.srcDir(outputDir)
+    val outputDir = layout.buildDirectory.dir("generated/$SUPABASE_FUNCTION_OUTPUT_DIR/jsMain/src")
 
     tasks.register<SupabaseFunctionGenerateKotlinBridgeTask>(TASK_GENERATE_BRIDGE) {
         group = SUPABASE_FUNCTION_TASK_GROUP
@@ -137,12 +134,18 @@ private fun Project.registerGenerateBridgeTask(
         description = "Generate a kotlin function that acts as a bridge between " +
                 "the `Deno.serve` and the kotlin main function."
 
+        packageName.convention(extension.packageName)
         supabaseDir.convention(extension.supabaseDir)
         generatedSourceOutputDir.convention(outputDir)
-        packageName.convention(extension.packageName)
         jsOutputName.convention(jsOutputName(kmpExtension))
         functionName.convention(extension.functionName)
         mainFunctionName.convention(KOTLIN_MAIN_FUNCTION_NAME)
+    }
+
+    afterEvaluate {
+        kmpExtension.sourceSets.named { it == "jsMain" }.configureEach {
+            kotlin.srcDir(outputDir)
+        }
     }
 }
 
@@ -166,22 +169,6 @@ private fun Project.registerCopyKotlinTask(
 ) {
     val uppercaseEnvironment = environment.uppercaseFirstChar()
     val compileSyncTaskName = "js${uppercaseEnvironment}LibraryCompileSync"
-
-    if (tasks.names.none { it == compileSyncTaskName }) {
-        logger.error(
-            """
-            Could not locate task `$compileSyncTaskName`, common reasons for this error are:
-
-            - The `$SUPABASE_FUNCTION_PLUGIN_NAME` plugin was applied on a build script where the kotlin multiplatform plugin was not applied (e.g., root build script)
-            - The kotlin multiplatform plugin was not applied on this project
-            - JS target was not initialized on this project
-            - JS target is missing `binaries.library()`
-            """.trimIndent()
-        )
-
-        error("Could not locate task `$compileSyncTaskName`, check the logs for possible causes.")
-    }
-
     val taskName = TASK_GENERATE_ENVIRONMENT_TEMPLATE.format(uppercaseEnvironment)
 
     tasks.register<SupabaseFunctionCopyKotlinTask>(taskName) {
@@ -189,13 +176,29 @@ private fun Project.registerCopyKotlinTask(
         description = "Copy Kotlin generated sources into supabase function directory."
 
         compiledSourceDir.convention(
-            layout.buildDirectory.dir("compileSync/js/main/${environment}Library/kotlin")
+            layout.buildDirectory.dir("compileSync/js/main/${environment}Library/kotlin").orNone()
         )
 
         supabaseDir.convention(extension.supabaseDir)
         functionName.convention(extension.functionName)
 
-        dependsOn(compileSyncTaskName)
+        if (tasks.names.none { it == compileSyncTaskName }) {
+            doFirst {
+                error(
+                    """
+                    Task `$compileSyncTaskName` was not found during project sync, common reasons for this error are:
+        
+                    - The `$SUPABASE_FUNCTION_PLUGIN_NAME` plugin was applied on a build script where the kotlin multiplatform plugin was not applied (e.g., root build script)
+                    - The kotlin multiplatform plugin was not applied on this project
+                    - JS target was not initialized on this project
+                    - JS target is missing `binaries.library()`
+                    """.trimIndent()
+                )
+            }
+        } else {
+            dependsOn(compileSyncTaskName)
+        }
+
         dependsOn(TASK_COPY_JS)
     }
 }
@@ -270,20 +273,24 @@ private fun Project.registerGenerateImportMapTask(
         group = SUPABASE_FUNCTION_TASK_GROUP
         description = "Generate import map."
 
-        packageJsonDir.convention(layout.buildDirectory.dir("tmp/jsPublicPackageJson"))
+        importMapsDir.convention(
+            rootProject.layout.buildDirectory
+                .dir("${SUPABASE_FUNCTION_OUTPUT_DIR}/$IMPORT_MAPS_DIRECTORY_NAME")
+        )
+
+        packageJsonFile.convention(
+            layout.buildDirectory.file("tmp/jsPublicPackageJson/package.json").orNone()
+        )
+
         functionName.convention(extension.functionName)
         jsDependencies.convention(jsDependenciesProvider)
 
-        dependsOn("jsPublicPackageJson")
+        if (tasks.names.any { it == JS_PUBLIC_PACKAGE_JSON_TASK }) {
+            dependsOn(JS_PUBLIC_PACKAGE_JSON_TASK)
+        }
     }
 
     aggregateTaskProvider.configure {
-        val aggregateTask = apply {
-            dependsOn(generateTaskProvider)
-        }
-
-        generateTaskProvider.configure {
-            importMapsDir.convention(aggregateTask.importMapsDir)
-        }
+        dependsOn(generateTaskProvider)
     }
 }
