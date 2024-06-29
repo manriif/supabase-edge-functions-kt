@@ -21,9 +21,11 @@
  */
 package io.github.manriif.supabase.functions.task
 
+import io.github.manriif.supabase.functions.IMPORT_MAP_TEMPLATE_FILE_NAME
 import io.github.manriif.supabase.functions.KOTLIN_MAIN_FUNCTION_NAME
 import io.github.manriif.supabase.functions.REQUEST_CONFIG_FILE_NAME
 import io.github.manriif.supabase.functions.SUPABASE_FUNCTION_OUTPUT_DIR
+import io.github.manriif.supabase.functions.SUPABASE_FUNCTION_PLUGIN_NAME
 import io.github.manriif.supabase.functions.SUPABASE_FUNCTION_TASK_GROUP
 import io.github.manriif.supabase.functions.SupabaseFunctionExtension
 import io.github.manriif.supabase.functions.kmp.JsDependency
@@ -41,6 +43,7 @@ import org.gradle.kotlin.dsl.support.uppercaseFirstChar
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 
 internal const val PREPARE_KOTLIN_BUILD_SCRIPT_MODEL_TASK = "prepareKotlinBuildScriptModel"
+internal const val JS_PUBLIC_PACKAGE_JSON_TASK = "jsPublicPackageJson"
 
 internal const val TASK_PREFIX = "supabaseFunction"
 internal const val TASK_GENERATE_ENVIRONMENT_TEMPLATE = "${TASK_PREFIX}CopyKotlin%s"
@@ -68,7 +71,7 @@ internal fun Project.configurePluginTasks(
     val jsDependenciesProvider = jsDependencies()
 
     registerGenerateImportMapTask(extension, jsDependenciesProvider)
-    registerGenerateBridgeTask(extension, kmpExtension)
+    registerGenerateKotlinBridgeTask(extension, kmpExtension)
     registerCopyJsTask(extension, jsDependenciesProvider)
     registerCopyKotlinTask(extension, "development")
     registerCopyKotlinTask(extension, "production")
@@ -93,8 +96,11 @@ private fun Project.registerAggregateImportMapTask(extension: SupabaseFunctionEx
         group = SUPABASE_FUNCTION_TASK_GROUP
         description = "Aggregate functions import maps."
 
-        importMapsDir.convention(layout.buildDirectory.dir("${SUPABASE_FUNCTION_OUTPUT_DIR}/importMaps"))
         supabaseDir.convention(extension.supabaseDir)
+
+        importMapTemplateFile.convention(
+            extension.supabaseDir.file("functions/$IMPORT_MAP_TEMPLATE_FILE_NAME").orNone()
+        )
     }
 
     tasks.named(PREPARE_KOTLIN_BUILD_SCRIPT_MODEL_TASK) {
@@ -111,16 +117,11 @@ private val Project.aggregateTaskProvider: TaskProvider<SupabaseFunctionAggregat
         "Aggregate task not found"
     }
 
-private fun Project.registerGenerateBridgeTask(
+private fun Project.registerGenerateKotlinBridgeTask(
     extension: SupabaseFunctionExtension,
     kmpExtension: KotlinMultiplatformExtension
 ) {
-    val sourceSet = kmpExtension.sourceSets.findByName("jsMain") ?: return
-
-    val outputDir = layout.buildDirectory
-        .dir("generated/$SUPABASE_FUNCTION_OUTPUT_DIR/${sourceSet.name}/src")
-
-    sourceSet.kotlin.srcDir(outputDir)
+    val outputDir = layout.buildDirectory.dir("generated/$SUPABASE_FUNCTION_OUTPUT_DIR/jsMain/src")
 
     tasks.register<SupabaseFunctionGenerateKotlinBridgeTask>(TASK_GENERATE_BRIDGE) {
         group = SUPABASE_FUNCTION_TASK_GROUP
@@ -128,12 +129,18 @@ private fun Project.registerGenerateBridgeTask(
         description = "Generate a kotlin function that acts as a bridge between " +
                 "the `Deno.serve` and the kotlin main function."
 
+        packageName.convention(extension.packageName)
         supabaseDir.convention(extension.supabaseDir)
         generatedSourceOutputDir.convention(outputDir)
-        packageName.convention(extension.packageName)
         jsOutputName.convention(jsOutputName(kmpExtension))
         functionName.convention(extension.functionName)
         mainFunctionName.convention(KOTLIN_MAIN_FUNCTION_NAME)
+    }
+
+    afterEvaluate {
+        kmpExtension.sourceSets.named { it == "jsMain" }.configureEach {
+            kotlin.srcDir(outputDir)
+        }
     }
 }
 
@@ -151,34 +158,52 @@ private fun Project.registerCopyJsTask(
     }
 }
 
+private fun missingJsCompileTaskError(compileTaskName: String): Nothing {
+    error(
+        """
+            Task `$compileTaskName` was not found during project sync, common reasons for this error are:
+
+            - The `$SUPABASE_FUNCTION_PLUGIN_NAME` plugin was applied on a build script where the kotlin multiplatform plugin was not applied (e.g., root build script)
+            - The kotlin multiplatform plugin was not applied on this project
+            - JS target was not initialized on this project
+            - JS target is missing `binaries.library()`
+        """.trimIndent()
+    )
+}
+
 private fun Project.registerCopyKotlinTask(
     extension: SupabaseFunctionExtension,
     environment: String,
 ) {
     val uppercaseEnvironment = environment.uppercaseFirstChar()
     val compileSyncTaskName = "js${uppercaseEnvironment}LibraryCompileSync"
-
-    if (tasks.names.none { it == compileSyncTaskName }) {
-        error(
-            "Could not locate task `$compileSyncTaskName`, " +
-                    "be sure you add `binaries.library()` to the js node target."
-        )
-    }
-
     val taskName = TASK_GENERATE_ENVIRONMENT_TEMPLATE.format(uppercaseEnvironment)
 
     tasks.register<SupabaseFunctionCopyKotlinTask>(taskName) {
         group = SUPABASE_FUNCTION_TASK_GROUP
-        description = "Copy Kotlin generated sources into supabase function directory."
-
-        compiledSourceDir.convention(
-            layout.buildDirectory.dir("compileSync/js/main/${environment}Library/kotlin")
-        )
+        description = "Copy Kotlin generated $environment sources into supabase function directory."
 
         supabaseDir.convention(extension.supabaseDir)
         functionName.convention(extension.functionName)
 
-        dependsOn(compileSyncTaskName)
+        val compileTaskFound = tasks.names.any { it == compileSyncTaskName }
+
+        if (compileTaskFound) {
+            compiledSourceDir.convention(
+                layout.buildDirectory.dir("compileSync/js/main/${environment}Library/kotlin")
+            )
+
+            dependsOn(compileSyncTaskName)
+        } else {
+            compiledSourceDir.convention(provider {
+                missingJsCompileTaskError(compileSyncTaskName)
+            })
+
+            doFirst {
+                missingJsCompileTaskError(compileSyncTaskName)
+            }
+        }
+
         dependsOn(TASK_COPY_JS)
     }
 }
@@ -247,26 +272,30 @@ private fun Project.registerGenerateImportMapTask(
     extension: SupabaseFunctionExtension,
     jsDependenciesProvider: Provider<Collection<JsDependency>>
 ) {
+    val importMapDir = layout.buildDirectory
+        .dir("generated/${SUPABASE_FUNCTION_OUTPUT_DIR}/importMap")
+
     val generateTaskProvider = tasks.register<SupabaseFunctionGenerateImportMapTask>(
         name = TASK_GENERATE_IMPORT_MAP
     ) {
         group = SUPABASE_FUNCTION_TASK_GROUP
         description = "Generate import map."
 
-        packageJsonDir.convention(layout.buildDirectory.dir("tmp/jsPublicPackageJson"))
+        packageJsonFile.convention(
+            layout.buildDirectory.file("tmp/jsPublicPackageJson/package.json").orNone()
+        )
+
+        importMapsDir.convention(importMapDir)
         functionName.convention(extension.functionName)
         jsDependencies.convention(jsDependenciesProvider)
 
-        dependsOn("jsPublicPackageJson")
+        if (tasks.names.any { it == JS_PUBLIC_PACKAGE_JSON_TASK }) {
+            dependsOn(JS_PUBLIC_PACKAGE_JSON_TASK)
+        }
     }
 
     aggregateTaskProvider.configure {
-        val aggregateTask = apply {
-            dependsOn(generateTaskProvider)
-        }
-
-        generateTaskProvider.configure {
-            importMapsDir.convention(aggregateTask.importMapsDir)
-        }
+        importMapDirs.from(importMapDir)
+        dependsOn(generateTaskProvider)
     }
 }

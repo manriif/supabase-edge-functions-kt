@@ -101,4 +101,8 @@ internal fun SupabaseFunctionExtension.setupConvention(project: Project) {
     functionName.convention(project.name)
     verifyJwt.convention(true)
     importMap.convention(true)
+
+    packageName.convention(project.provider {
+        error("packageName is not set, please provide the package name of the kotlin main function.")
+    })
 }

@@ -40,7 +40,7 @@ import java.io.File
 import javax.inject.Inject
 
 /**
- * Task responsible for copying generated js code into supabase function directory.
+ * Task responsible for copying js sources into supabase function directory.
  */
 @CacheableTask
 abstract class SupabaseFunctionCopyJsTask : DefaultTask() {

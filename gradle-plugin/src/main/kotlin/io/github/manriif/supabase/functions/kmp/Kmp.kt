@@ -24,9 +24,12 @@ package io.github.manriif.supabase.functions.kmp
 import io.github.manriif.supabase.functions.COROUTINES_VERSION
 import io.github.manriif.supabase.functions.COROUTINES_VERSION_GRADLE_PROPERTY
 import io.github.manriif.supabase.functions.SUPABASE_FUNCTION_PLUGIN_NAME
+import io.github.manriif.supabase.functions.task.SupabaseFunctionCopyKotlinTask
 import io.github.manriif.supabase.functions.task.TASK_GENERATE_BRIDGE
+import io.github.manriif.supabase.functions.util.postponeErrorOnTaskInvocation
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.withType
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JsModuleKind
 import org.jetbrains.kotlin.gradle.dsl.JsSourceMapEmbedMode
 import org.jetbrains.kotlin.gradle.dsl.JsSourceMapNamesPolicy
@@ -36,7 +39,6 @@ import org.jetbrains.kotlin.gradle.targets.js.ir.KotlinJsIrTarget
 
 internal fun Project.setupKotlinMultiplatform(kmpExtension: KotlinMultiplatformExtension) {
     kmpExtension.targets.withType<KotlinJsIrTarget>().configureEach {
-        ensureMeetRequirements()
         configureCompilation()
     }
 
@@ -48,57 +50,66 @@ internal fun Project.setupKotlinMultiplatform(kmpExtension: KotlinMultiplatformE
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${coroutinesVersion}")
         }
     }
+
+    afterEvaluate {
+        kmpExtension.targets.withType<KotlinJsIrTarget>().forEach { target ->
+            target.checkUserConfiguration()
+        }
+    }
 }
 
-private fun KotlinJsIrTarget.ensureMeetRequirements() {
+private fun KotlinJsIrTarget.configureCompilation() {
+    @OptIn(ExperimentalKotlinGradlePluginApi::class)
+    compilerOptions {
+        // [KT-47968](https://youtrack.jetbrains.com/issue/KT-47968/KJS-IR-Debug-in-external-tool-cant-step-into-library-function-with-available-sources)
+        // [KT-49757](https://youtrack.jetbrains.com/issue/KT-49757/Kotlin-JS-support-sourceMapEmbedSources-setting-by-IR-backend)
+        sourceMap.set(true)
+        sourceMapNamesPolicy.set(JsSourceMapNamesPolicy.SOURCE_MAP_NAMES_POLICY_FQ_NAMES)
+        sourceMapEmbedSources.set(JsSourceMapEmbedMode.SOURCE_MAP_SOURCE_CONTENT_ALWAYS)
+    }
+
+    compilations.named(KotlinCompilation.MAIN_COMPILATION_NAME) {
+        compileTaskProvider.configure {
+            dependsOn(TASK_GENERATE_BRIDGE)
+        }
+    }
+}
+
+private fun KotlinJsIrTarget.checkUserConfiguration() {
+    if (isBrowserConfigured) {
+        project.logger.warn(
+            "Browser execution environment is not supported by " +
+                    "`$SUPABASE_FUNCTION_PLUGIN_NAME` plugin."
+        )
+    }
+
     val granularity = project.findProperty("kotlin.js.ir.output.granularity")?.toString()
 
     if (!(granularity.isNullOrBlank() || granularity == "per-module")) {
-        error(
+        project.postponeErrorOnTaskInvocation<SupabaseFunctionCopyKotlinTask>(
             "Only `per-module` JS IR output granularity is supported " +
                     "by `$SUPABASE_FUNCTION_PLUGIN_NAME` plugin. " +
                     "Current granularity is `$granularity`."
         )
     }
 
-    if (isBrowserConfigured) {
-        error(
-            "Browser execution environment is not supported by " +
-                    "`$SUPABASE_FUNCTION_PLUGIN_NAME` plugin."
+    val compilation = compilations.findByName(KotlinCompilation.MAIN_COMPILATION_NAME)
+
+    // Module kind is not set when using new compiler option DSL, fallback to deprecated one
+    val options = @Suppress("DEPRECATION") compilation?.compilerOptions?.options
+    val moduleKind = options?.moduleKind?.orNull
+
+    if (moduleKind != JsModuleKind.MODULE_ES) {
+        project.postponeErrorOnTaskInvocation<SupabaseFunctionCopyKotlinTask>(
+            "Plugin `supabase-function` only supports ES module kind. " +
+                    "Current module kind is `$moduleKind`."
         )
     }
 
     if (!isNodejsConfigured) {
-        error(
+        project.postponeErrorOnTaskInvocation<SupabaseFunctionCopyKotlinTask>(
             "Node.js execution environment is a requirement " +
                     "for `$SUPABASE_FUNCTION_PLUGIN_NAME` plugin."
         )
-    }
-}
-
-private fun KotlinJsIrTarget.configureCompilation() {
-    compilations.named(KotlinCompilation.MAIN_COMPILATION_NAME) {
-        // Module kind is not set when using new compiler option DSL, fallback to deprecated one
-        @Suppress("DEPRECATION")
-        compilerOptions.configure {
-            val kind = moduleKind.orNull
-
-            if (kind != JsModuleKind.MODULE_ES) {
-                error(
-                    "Plugin `supabase-function` only supports ES module kind. " +
-                            "Current module kind is $kind."
-                )
-            }
-
-            // [KT-47968](https://youtrack.jetbrains.com/issue/KT-47968/KJS-IR-Debug-in-external-tool-cant-step-into-library-function-with-available-sources)
-            // [KT-49757](https://youtrack.jetbrains.com/issue/KT-49757/Kotlin-JS-support-sourceMapEmbedSources-setting-by-IR-backend)
-            sourceMap.set(true)
-            sourceMapNamesPolicy.set(JsSourceMapNamesPolicy.SOURCE_MAP_NAMES_POLICY_FQ_NAMES)
-            sourceMapEmbedSources.set(JsSourceMapEmbedMode.SOURCE_MAP_SOURCE_CONTENT_ALWAYS)
-        }
-
-        compileTaskProvider.configure {
-            dependsOn(TASK_GENERATE_BRIDGE)
-        }
     }
 }
