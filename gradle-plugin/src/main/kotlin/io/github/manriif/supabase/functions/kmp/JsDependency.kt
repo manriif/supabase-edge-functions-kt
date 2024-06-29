@@ -58,7 +58,11 @@ internal abstract class JsDependency @Inject constructor() {
 
 internal fun Project.jsDependencies(): Provider<Collection<JsDependency>> {
     val projectDependencies = mutableMapOf<String, JsDependency>()
-    findProjectDependencies(projectDependencies)
+
+    afterEvaluate {
+        findProjectDependencies(projectDependencies)
+    }
+
     return provider(projectDependencies::values)
 }
 
@@ -100,8 +104,8 @@ private fun Project.configureJsDependency(collector: MutableMap<String, JsDepend
 private fun Project.findProjectDependencies(collector: MutableMap<String, JsDependency>) {
     configureJsDependency(collector)
 
-    configurations.configureEach {
-        allDependencies.withType<ProjectDependency> {
+    configurations.forEach { configuration ->
+        configuration.allDependencies.withType<ProjectDependency> {
             dependencyProject.findProjectDependencies(collector)
         }
     }
