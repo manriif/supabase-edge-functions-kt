@@ -25,6 +25,7 @@ import io.github.manriif.supabase.functions.IMPORT_MAP_TEMPLATE_FILE_NAME
 import io.github.manriif.supabase.functions.KOTLIN_MAIN_FUNCTION_NAME
 import io.github.manriif.supabase.functions.REQUEST_CONFIG_FILE_NAME
 import io.github.manriif.supabase.functions.SUPABASE_FUNCTION_OUTPUT_DIR
+import io.github.manriif.supabase.functions.SUPABASE_FUNCTION_PLUGIN_NAME
 import io.github.manriif.supabase.functions.SUPABASE_FUNCTION_TASK_GROUP
 import io.github.manriif.supabase.functions.SupabaseFunctionExtension
 import io.github.manriif.supabase.functions.kmp.JsDependency
@@ -167,10 +168,18 @@ private fun Project.registerCopyKotlinTask(
     val compileSyncTaskName = "js${uppercaseEnvironment}LibraryCompileSync"
 
     if (tasks.names.none { it == compileSyncTaskName }) {
-        error(
-            "Could not locate task `$compileSyncTaskName`, " +
-                    "be sure you add `binaries.library()` to the js node target."
+        logger.error(
+            """
+            Could not locate task `$compileSyncTaskName`, common reasons for this error are:
+
+            - The `$SUPABASE_FUNCTION_PLUGIN_NAME` plugin was applied on a build script where the kotlin multiplatform plugin was not applied (e.g., root build script)
+            - The kotlin multiplatform plugin was not applied on this project
+            - JS target was not initialized on this project
+            - JS target is missing `binaries.library()`
+            """.trimIndent()
         )
+
+        error("Could not locate task `$compileSyncTaskName`, check the logs for possible causes.")
     }
 
     val taskName = TASK_GENERATE_ENVIRONMENT_TEMPLATE.format(uppercaseEnvironment)
