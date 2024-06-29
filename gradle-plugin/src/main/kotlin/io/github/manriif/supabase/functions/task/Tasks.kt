@@ -21,6 +21,7 @@
  */
 package io.github.manriif.supabase.functions.task
 
+import io.github.manriif.supabase.functions.IMPORT_MAP_TEMPLATE_FILE_NAME
 import io.github.manriif.supabase.functions.KOTLIN_MAIN_FUNCTION_NAME
 import io.github.manriif.supabase.functions.REQUEST_CONFIG_FILE_NAME
 import io.github.manriif.supabase.functions.SUPABASE_FUNCTION_OUTPUT_DIR
@@ -93,8 +94,15 @@ private fun Project.registerAggregateImportMapTask(extension: SupabaseFunctionEx
         group = SUPABASE_FUNCTION_TASK_GROUP
         description = "Aggregate functions import maps."
 
-        importMapsDir.convention(layout.buildDirectory.dir("${SUPABASE_FUNCTION_OUTPUT_DIR}/importMaps"))
         supabaseDir.convention(extension.supabaseDir)
+
+        importMapsDir.convention(
+            layout.buildDirectory.dir("${SUPABASE_FUNCTION_OUTPUT_DIR}/importMaps")
+        )
+
+        importMapTemplateFile.convention(
+            extension.supabaseDir.file("functions/$IMPORT_MAP_TEMPLATE_FILE_NAME").orNone()
+        )
     }
 
     tasks.named(PREPARE_KOTLIN_BUILD_SCRIPT_MODEL_TASK) {

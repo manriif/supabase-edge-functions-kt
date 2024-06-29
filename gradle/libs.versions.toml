@@ -1,7 +1,7 @@
 [versions]
 
 # Projct version
-supabase-functions = "0.0.2"
+supabase-functions = "0.0.3"
 
 jvm-target = "11"
 
