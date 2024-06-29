@@ -21,7 +21,6 @@
  */
 package io.github.manriif.supabase.functions.task
 
-import io.github.manriif.supabase.functions.IMPORT_MAPS_DIRECTORY_NAME
 import io.github.manriif.supabase.functions.IMPORT_MAP_TEMPLATE_FILE_NAME
 import io.github.manriif.supabase.functions.KOTLIN_MAIN_FUNCTION_NAME
 import io.github.manriif.supabase.functions.REQUEST_CONFIG_FILE_NAME
@@ -99,10 +98,6 @@ private fun Project.registerAggregateImportMapTask(extension: SupabaseFunctionEx
 
         supabaseDir.convention(extension.supabaseDir)
 
-        importMapsDir.convention(
-            layout.buildDirectory.dir("${SUPABASE_FUNCTION_OUTPUT_DIR}/$IMPORT_MAPS_DIRECTORY_NAME")
-        )
-
         importMapTemplateFile.convention(
             extension.supabaseDir.file("functions/$IMPORT_MAP_TEMPLATE_FILE_NAME").orNone()
         )
@@ -163,6 +158,19 @@ private fun Project.registerCopyJsTask(
     }
 }
 
+private fun missingJsCompileTaskError(compileTaskName: String): Nothing {
+    error(
+        """
+            Task `$compileTaskName` was not found during project sync, common reasons for this error are:
+
+            - The `$SUPABASE_FUNCTION_PLUGIN_NAME` plugin was applied on a build script where the kotlin multiplatform plugin was not applied (e.g., root build script)
+            - The kotlin multiplatform plugin was not applied on this project
+            - JS target was not initialized on this project
+            - JS target is missing `binaries.library()`
+        """.trimIndent()
+    )
+}
+
 private fun Project.registerCopyKotlinTask(
     extension: SupabaseFunctionExtension,
     environment: String,
@@ -173,30 +181,27 @@ private fun Project.registerCopyKotlinTask(
 
     tasks.register<SupabaseFunctionCopyKotlinTask>(taskName) {
         group = SUPABASE_FUNCTION_TASK_GROUP
-        description = "Copy Kotlin generated sources into supabase function directory."
-
-        compiledSourceDir.convention(
-            layout.buildDirectory.dir("compileSync/js/main/${environment}Library/kotlin").orNone()
-        )
+        description = "Copy Kotlin generated $environment sources into supabase function directory."
 
         supabaseDir.convention(extension.supabaseDir)
         functionName.convention(extension.functionName)
 
-        if (tasks.names.none { it == compileSyncTaskName }) {
-            doFirst {
-                error(
-                    """
-                    Task `$compileSyncTaskName` was not found during project sync, common reasons for this error are:
-        
-                    - The `$SUPABASE_FUNCTION_PLUGIN_NAME` plugin was applied on a build script where the kotlin multiplatform plugin was not applied (e.g., root build script)
-                    - The kotlin multiplatform plugin was not applied on this project
-                    - JS target was not initialized on this project
-                    - JS target is missing `binaries.library()`
-                    """.trimIndent()
-                )
-            }
-        } else {
+        val compileTaskFound = tasks.names.any { it == compileSyncTaskName }
+
+        if (compileTaskFound) {
+            compiledSourceDir.convention(
+                layout.buildDirectory.dir("compileSync/js/main/${environment}Library/kotlin")
+            )
+
             dependsOn(compileSyncTaskName)
+        } else {
+            compiledSourceDir.convention(provider {
+                missingJsCompileTaskError(compileSyncTaskName)
+            })
+
+            doFirst {
+                missingJsCompileTaskError(compileSyncTaskName)
+            }
         }
 
         dependsOn(TASK_COPY_JS)
@@ -267,21 +272,20 @@ private fun Project.registerGenerateImportMapTask(
     extension: SupabaseFunctionExtension,
     jsDependenciesProvider: Provider<Collection<JsDependency>>
 ) {
+    val importMapDir = layout.buildDirectory
+        .dir("generated/${SUPABASE_FUNCTION_OUTPUT_DIR}/importMap")
+
     val generateTaskProvider = tasks.register<SupabaseFunctionGenerateImportMapTask>(
         name = TASK_GENERATE_IMPORT_MAP
     ) {
         group = SUPABASE_FUNCTION_TASK_GROUP
         description = "Generate import map."
 
-        importMapsDir.convention(
-            rootProject.layout.buildDirectory
-                .dir("${SUPABASE_FUNCTION_OUTPUT_DIR}/$IMPORT_MAPS_DIRECTORY_NAME")
-        )
-
         packageJsonFile.convention(
             layout.buildDirectory.file("tmp/jsPublicPackageJson/package.json").orNone()
         )
 
+        importMapsDir.convention(importMapDir)
         functionName.convention(extension.functionName)
         jsDependencies.convention(jsDependenciesProvider)
 
@@ -291,6 +295,7 @@ private fun Project.registerGenerateImportMapTask(
     }
 
     aggregateTaskProvider.configure {
+        importMapDirs.from(importMapDir)
         dependsOn(generateTaskProvider)
     }
 }

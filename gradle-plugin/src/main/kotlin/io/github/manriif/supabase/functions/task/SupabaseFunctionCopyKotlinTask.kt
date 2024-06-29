@@ -53,7 +53,6 @@ abstract class SupabaseFunctionCopyKotlinTask : DefaultTask() {
     internal abstract val supabaseDir: DirectoryProperty
 
     @get:InputDirectory
-    @get:Optional
     @get:PathSensitive(PathSensitivity.RELATIVE)
     internal abstract val compiledSourceDir: DirectoryProperty
 

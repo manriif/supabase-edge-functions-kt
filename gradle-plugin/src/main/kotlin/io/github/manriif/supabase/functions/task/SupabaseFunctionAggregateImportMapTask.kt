@@ -28,12 +28,12 @@ import io.github.manriif.supabase.functions.IMPORT_MAP_TEMPLATE_FILE_NAME
 import io.github.manriif.supabase.functions.error.SupabaseFunctionImportMapTemplateException
 import io.github.manriif.supabase.functions.supabase.supabaseAllFunctionsDirFile
 import org.gradle.api.DefaultTask
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.tasks.CacheableTask
-import org.gradle.api.tasks.IgnoreEmptyDirectories
-import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputFile
@@ -51,10 +51,9 @@ import java.io.File
 @CacheableTask
 abstract class SupabaseFunctionAggregateImportMapTask : DefaultTask() {
 
-    @get:InputDirectory
-    @get:IgnoreEmptyDirectories
+    @get:InputFiles
     @get:PathSensitive(PathSensitivity.RELATIVE)
-    internal abstract val importMapsDir: DirectoryProperty
+    internal abstract val importMapDirs: ConfigurableFileCollection
 
     @get:Internal
     internal abstract val supabaseDir: DirectoryProperty
@@ -100,7 +99,7 @@ abstract class SupabaseFunctionAggregateImportMapTask : DefaultTask() {
         val imports = importMap.getAsJsonObject(IMPORT_MAP_JSON_IMPORTS)
         val scopes = importMap.getAsJsonObject(IMPORT_MAP_JSON_SCOPES)
 
-        importMapsDir.get().asFileTree
+        importMapDirs.asFileTree
             .matching {
                 include { file ->
                     !file.isDirectory && file.name.endsWith(".json")
