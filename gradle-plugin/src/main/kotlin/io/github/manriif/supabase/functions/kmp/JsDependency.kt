@@ -104,6 +104,7 @@ private fun Project.configureJsDependency(collector: MutableMap<String, JsDepend
 private fun Project.findProjectDependencies(collector: MutableMap<String, JsDependency>) {
     configureJsDependency(collector)
 
+    // TODO find an alternative for accessing project dependencies to stay compatible with Gradle 9.0
     configurations.forEach { configuration ->
         configuration.allDependencies.withType<ProjectDependency> {
             dependencyProject.findProjectDependencies(collector)

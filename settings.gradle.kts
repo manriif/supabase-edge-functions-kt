@@ -23,6 +23,7 @@ dependencyResolutionManagement {
     repositories {
         mavenCentral()
         gradlePluginPortal()
+        maven("https://packages.atlassian.com/mvn/maven-atlassian-external/")
     }
 }
 
