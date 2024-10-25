@@ -1,20 +1,20 @@
 [versions]
 
 # Projct version
-supabase-functions = "0.0.5"
+supabase-functions = "0.0.6"
 
 jvm-target = "11"
 
-detekt = "1.23.6"
+detekt = "1.23.7"
 dokka = "1.9.20"
-gradle-idea-ext = "1.1.8"
+gradle-idea-ext = "1.1.9"
 gradle-plugin-publish = "1.2.1"
-kotlin = "2.0.0"
-kotlinpoet = "1.17.0"
-kotlinx-coroutines = "1.8.1"
-kotlinx-serialization = "1.7.0"
+kotlin = "2.0.21"
+kotlinpoet = "2.0.0"
+kotlinx-coroutines = "1.9.0"
+kotlinx-serialization = "1.7.3"
 sourcemap = "2.0.0"
-vanniktech-maven-publish = "0.29.0"
+vanniktech-maven-publish = "0.30.0"
 
 [plugins]
 

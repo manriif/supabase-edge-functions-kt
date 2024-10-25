@@ -42,9 +42,9 @@ import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
-import org.gradle.configurationcache.extensions.get
 import org.gradle.deployment.internal.DeploymentRegistry
 import org.gradle.initialization.BuildCancellationToken
+import org.gradle.kotlin.dsl.support.get
 import org.gradle.process.internal.ExecHandleFactory
 import javax.inject.Inject
 
