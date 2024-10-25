@@ -9,7 +9,7 @@ The project aims to bring the ability of writing and deploying Supabase Edge Fun
 as primary programming language.
 
 [![](https://img.shields.io/badge/Stability-experimental-orange)](#project-stability)
-[![Kotlin](https://img.shields.io/badge/kotlin-2.0.0-blue.svg?logo=kotlin)](http://kotlinlang.org)
+[![Kotlin](https://img.shields.io/badge/kotlin-2.0.21-blue.svg?logo=kotlin)](http://kotlinlang.org)
 [![IR](https://img.shields.io/badge/Kotlin%2FJS-IR_only-yellow)](https://kotl.in/jsirsupported)
 [![API](https://img.shields.io/badge/API-dokka-green)][website]
 [![Maven Central](https://img.shields.io/maven-central/v/io.github.manriif.supabase-functions/gradle-plugin?label=MavenCentral&logo=apache-maven)](https://central.sonatype.com/artifact/io.github.manriif.supabase-functions/gradle-plugin)
